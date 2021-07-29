@@ -1,0 +1,106 @@
+#!/usr/bin/env lua
+local function findproj()
+	if not io.open "template/main.xml" then
+		os.execute "cd .."
+		if not io.open "template/main.xml" then
+			print "cannot detect a mirin project"
+			error()
+		end
+	end
+end
+
+local commands = {}
+
+function commands.help()
+	print "mirin package manager v1.0"
+	print "XeroOl <XeroOl#5452>"
+	print ""
+	print "USAGE:"
+	print "mirin <command> <args>"
+	print ""
+	print "COMMANDS:"
+	print "mirin init"
+	print "    initializes a directory to the mirin template"
+	print ""
+	print "mirin install <plugin>"
+	print "    installs the specified plugin"
+	print ""
+	print "mirin remove <plugin>"
+	print "    removes the specified plugin"
+	print ""
+	print "mirin list [type]"
+	print "    lists all plugins"
+	print "    [type] accepts 'available' or 'installed', defaults to 'installed'"
+	print ""
+	print "mirin help"
+	print "    shows this page"
+end
+function commands.install()
+	findproj()
+	if #arg == 1 then
+		print "error: nothing to install"
+		return
+	end
+	os.execute("mkdir -p plugins/")
+	for i = 2, #arg do
+		local plugin = arg[i]
+		local filename = plugin..".xml"
+		local filepath = "plugins/"..filename
+		if io.open(filepath) then
+			print(plugin .. " is already installed")
+		else
+			if os.execute("wget https://raw.githubusercontent.com/XeroOl/notitg-mirin-plugins/master/\""..filename.."\" -O \""..filepath.."\" -a /dev/null") then
+				print("installed "..plugin)
+			else
+				os.execute("rm \""..filepath.."\"")
+				print("cannot find plugin \""..plugin.."\"")
+				arg[2] = "available"
+				commands.list()
+			end
+		end
+	end
+end
+function commands.remove()
+	findproj()
+	for i = 2, #arg do
+		local plugin = arg[i]
+		local filename = plugin..".xml"
+		local filepath = "plugins/"..filename
+		if io.open(filepath) then
+			if os.execute("rm \""..filepath.."\"") then
+				print("removed "..plugin)
+			end
+		else
+			print("cannot find plugin \"" .. plugin .. "\"")
+			arg[2] = "installed"
+			commands.list()
+		end
+	end
+end
+commands.uninstall = commands.remove
+function commands.list()
+	if arg[2] == "available" then
+		print "available plugins:"
+		os.execute("wget https://raw.githubusercontent.com/XeroOl/notitg-mirin-plugins/master/PLUGINLIST.txt -a /dev/null -O -")
+	else
+		findproj()
+		print("installed plugins:")
+		os.execute("mkdir -p plugins")
+		io.write((io.popen("ls plugins"):read("*a"):gsub("%.xml", "")))
+	end
+end
+function commands.init()
+	local target = ("\"".. arg[2] .. "\"") or "\".\""
+	os.execute("mkdir -p "..target)
+	os.execute("git clone https://github.com/XeroOl/notitg-mirin.git "..target)
+	os.execute("rm -rf "..target.."/.git "..target.."/readme.md")
+	print("initialized " .. target)
+end
+
+arg[1] = arg[1] or "help"
+if commands[arg[1]] then
+	pcall(commands[arg[1]])
+else
+	print("unknown command \""..arg[1].."\"")
+	commands.help()
+end
