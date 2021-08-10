@@ -1,6 +1,6 @@
 # Mirin Package Manager
 A MacOS/Linux command line tool to make it slightly easier to download plugins for the Mirin Template.
-Since Mirin Template plugins don't have any dependencies, this is basically a glorified file downloader. It isn't at all necessary in order to use plugins.
+Since Mirin Template plugins don't have any dependencies, this is basically a glorified file downloader. It isn't at all necessary in order to use plugins, as it's only a convenience tool for people who prefer the command line over a web browser.
 
 # Installation (MacOS / Linux)
 Should work on MacOS or Linux as long as lua is installed into the path. To install, just place the `mirin`
